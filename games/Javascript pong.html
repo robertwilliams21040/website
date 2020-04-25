@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    
+    <meta charset="utf-8"/>
+    <title>Javascript Pong</title>
+    <style>
+        *{ padding:0; margin:0;}
+        canvas{background: gray; display: block; margin: 0 auto;}
+    
+    </style>
+    
+</head>
+<body>
+    
+    
+<canvas id ="myCanvas" width="480" height="320"></canvas>    
+    
+    
+    
+    
+    
+    
+<script>
+  
+   //Grab ref to the Canvas 
+   var canvas = document.getElementById("myCanvas");
+   var ctx = canvas.getContext("2d");
+    
+    //define ball radius
+    var ballRadius = 10;
+    
+    //define x and y posistion of ball
+    var x = canvas.width/2;
+    var y = canvas.height-30;
+    
+    //change x and y(Ball Speed)
+    var dx = 3;
+    var dy = 3;
+    
+    //Variable for coloring
+    var color ='';
+    
+    
+    //Variables for Player Paddle function
+    var paddleHeight = 10;
+    var paddleWidth = 70;
+    var paddleX = (canvas.width-paddleWidth)/2;
+   
+    
+    
+    //Variables for paddle control
+    var rightPressed = false;
+    var leftPressed = false;
+    
+    
+    //Variables for Enemy Paddle function
+    var EnemypaddleHeight = 10;
+    var EnemypaddleWidth = 70;
+    var EnemypaddleX = (canvas.width-paddleWidth)/2;
+    
+   
+    
+    //Get random color function for changing ball color
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++ ) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+     color = getRandomColor();
+    
+
+   //Event Listeners for Keyboard
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler,false);
+    document.addEventListener("mousemove", mouseMoveHandler, false);
+   
+    
+    //Define user keys to look for button press
+    function keyDownHandler(e) {
+    if(e.keyCode == 39) {
+        rightPressed = true;
+      }
+    else if(e.keyCode == 37) {
+        leftPressed = true;
+      }
+    }
+
+    function keyUpHandler(e) {
+    if(e.keyCode == 39) {
+        rightPressed = false;
+        console.log("right key up");
+      }
+    else if(e.keyCode == 37) {
+        leftPressed = false;
+        console.log("left key up");
+      }
+    }
+    
+    //Define mouse move handling
+    function mouseMoveHandler(e) {
+    var relativeX = e.clientX - canvas.offsetLeft;
+    if(relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleWidth/2;
+        }
+    }
+    
+    
+    
+    
+    
+    //Draw Ball on Screen
+    function drawBall(color){
+        ctx.beginPath();
+        ctx.arc(x,y,ballRadius,0,Math.PI*2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.closePath();
+    }
+    
+    
+    //Draw Paddle on Screen
+    function drawPaddle(){
+        ctx.beginPath();
+        ctx.rect(paddleX,canvas.height-paddleHeight,paddleWidth,paddleHeight);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    }
+    
+    
+    //Draw Enemy Paddle on the srceen
+    function drawEnemyPaddle(){
+        ctx.beginPath();
+        ctx.rect(EnemypaddleX,0,EnemypaddleWidth,EnemypaddleHeight);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    }
+    
+    
+    
+   
+    
+    //Draw items to canvas
+    function draw(){
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        
+        //Draw ball with new color, draw paddle, draw bricks, detect collisions, and draw scores and lives
+        drawBall(color);
+        drawPaddle();
+        drawEnemyPaddle();
+        
+        
+        
+        //Bounce Ball off left and right wall
+        if(x + dx > canvas.width - ballRadius || x + dx < ballRadius){
+            dx = -dx;
+            
+            //Set new rendow color
+            color = getRandomColor();
+           
+        }
+        
+        //Check to see if ball is Between Enemy Paddle, if not You Win!!
+        if(y + dy < ballRadius){
+            if(x > EnemypaddleX && x < EnemypaddleX+EnemypaddleWidth){
+                dy = -dy;
+                
+                //Set new rendow color
+                color = getRandomColor();
+                
+            }
+            else{
+                alert("YOU WIN");
+                document.location.reload();
+            }
+        }
+            
+        
+        //If ball is between paddle change direction, if not You Lose!!!
+         if(y + dy > canvas.height-ballRadius){
+            if(x > paddleX && x < paddleX+paddleWidth){
+                dy = -dy;
+                
+                //Set new rendow color
+                color = getRandomColor();
+                
+            }
+            else{
+                alert("YOU LOSE");
+                document.location.reload();
+             }
+             
+         }
+        
+        
+        
+        //Check to see if keys are pressed and not on edge of screen (player paddle speed)
+        if(rightPressed && paddleX < canvas.width-paddleWidth) {
+            paddleX += 4;
+        }
+        else if(leftPressed && paddleX > 0) {
+            paddleX -= 4;
+        }
+        
+        
+        
+        //Move Enemy Paddle Relative to the position of the Ball (Enemy Paddle Speed)
+        //* Added +35 so target is set to the middle of the paddle and not the edge
+        if (x > EnemypaddleX+35 && EnemypaddleX < canvas.width-paddleWidth){
+            EnemypaddleX+=2.5;
+        }
+        else if(x < EnemypaddleX+35 && EnemypaddleX >0){
+            EnemypaddleX -=2.5;
+        }
+        
+        
+        //Increment x and y of ball
+        x += dx;
+        y += dy;
+        
+        //request Animation frames
+         requestAnimationFrame(draw); 
+    }
+    
+    
+    
+    
+   draw();
+ 
+    
+    
+    
+    
+    
+</script>
+
+    
+    
+</body>
+</html>

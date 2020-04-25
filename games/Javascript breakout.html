@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    
+    <meta charset="utf-8"/>
+    <title>Javascript Breakout</title>
+    <style>
+        *{ padding:0; margin:0;}
+        canvas{background: gray; display: block; margin: 0 auto;}
+    
+    </style>
+    
+</head>
+<body>
+    
+    
+<canvas id ="myCanvas" width="480" height="320"></canvas>    
+    
+    
+    
+    
+    
+    
+<script>
+  
+   //Grab ref to the Canvas 
+   var canvas = document.getElementById("myCanvas");
+   var ctx = canvas.getContext("2d");
+    
+    //define ball radius
+    var ballRadius = 10;
+    
+    //define x and y posistion of ball
+    var x = canvas.width/2;
+    var y = canvas.height-30;
+    
+    //change x and y
+    var dx = -2;
+    var dy = -2;
+    
+    //Variable for coloring
+    var color ='';
+    
+    
+    //Variables for Paddle function
+    var paddleHeight = 10;
+    var paddleWidth = 70;
+    var paddleX = (canvas.width-paddleWidth)/2;
+   
+    
+    
+    //Variables for paddle control
+    var rightPressed = false;
+    var leftPressed = false;
+    
+    
+    //Variables for brick field
+    var brickRowCount = 3;
+    var brickColumnCount = 5;
+    var brickWidth = 75;
+    var brickHeight = 20;
+    var brickPadding = 10;
+    var brickOffsetTop = 30;
+    var brickOffsetLeft = 30;
+    
+    //Brick field object initialization
+    var bricks = [];
+    for(c=0; c<brickColumnCount; c++) {
+    bricks[c] = [];
+        for(r=0; r<brickRowCount; r++) {
+            bricks[c][r] = { x: 0, y: 0, status:1 };
+        }
+    }
+    
+    
+    //Variable for keeping score
+    var score = 0;
+    
+    //Variable for bricks hit
+    var bricksHit = 0;
+    
+    
+    //Variable for player lives
+    var lives = 3;
+    
+    
+    
+    //Get random color function for changing ball color
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++ ) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+     color = getRandomColor();
+    
+
+   //Event Listeners for Keyboard
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler,false);
+    document.addEventListener("mousemove", mouseMoveHandler, false);
+   
+    
+    //Define user keys to look for button press
+    function keyDownHandler(e) {
+    if(e.keyCode == 39) {
+        rightPressed = true;
+      }
+    else if(e.keyCode == 37) {
+        leftPressed = true;
+      }
+    }
+
+    function keyUpHandler(e) {
+    if(e.keyCode == 39) {
+        rightPressed = false;
+        console.log("right key up");
+      }
+    else if(e.keyCode == 37) {
+        leftPressed = false;
+        console.log("left key up");
+      }
+    }
+    
+    //Define mouse move handling
+    function mouseMoveHandler(e) {
+    var relativeX = e.clientX - canvas.offsetLeft;
+    if(relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleWidth/2;
+        }
+    }
+    
+    
+    
+    
+    
+    //Draw Ball on Screen
+    function drawBall(color){
+        ctx.beginPath();
+        ctx.arc(x,y,ballRadius,0,Math.PI*2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.closePath();
+    }
+    
+    
+    //Draw Paddle on Screen
+    function drawPaddle(){
+        ctx.beginPath();
+        ctx.rect(paddleX,canvas.height-paddleHeight,paddleWidth,paddleHeight);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    }
+    
+    
+    //Draw brick layers on screen
+    function drawBricks() {
+    for(c=0; c<brickColumnCount; c++) {
+        for(r=0; r<brickRowCount; r++) {
+            if(bricks[c][r].status == 1) {
+                var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
+                var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+                bricks[c][r].x = brickX;
+                bricks[c][r].y = brickY;
+                ctx.beginPath();
+                ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                ctx.fillStyle = "#0095DD";
+                ctx.fill();
+                ctx.closePath();
+                }
+            }
+        }
+    }
+    
+    
+    //Draw Score on Screen
+    function drawScore(){
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#0095DD";
+        ctx.fillText("Score: "+score, 8,20);
+    }
+    
+    
+    
+    //Draw Remaining player lives
+    function drawLives() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Lives: "+lives, canvas.width-65, 20);
+    }
+    
+    
+    //Collision Detection function for bricks
+   function collisionDetection() {
+    for(c=0; c<brickColumnCount; c++) {
+        for(r=0; r<brickRowCount; r++) {
+            
+            //Temporary brick variable
+            var b = bricks[c][r];
+            
+            //Check status of brick. If collided with ball, changes status to 0
+            if(b.status == 1) {
+                if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+                    dy = -dy;
+                    b.status = 0;
+                    bricksHit++;
+                    score +=2;
+                    //Change color of ball when it hits a brick
+                    color = getRandomColor();
+                    if(bricksHit == brickRowCount*brickColumnCount) {
+                        alert("YOU WIN, CONGRATULATIONS! Your Score:"+score);
+                        document.location.reload();
+                        }
+                    }
+                }
+            }
+        }
+   }
+    
+    
+    
+   
+    
+    //Draw items to canvas
+    function draw(){
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        
+        //Draw ball with new color, draw paddle, draw bricks, detect collisions, and draw scores and lives
+        drawBall(color);
+        drawPaddle();
+        drawBricks();
+        collisionDetection();
+        drawScore();
+        drawLives();
+        
+        
+        
+        //Bounce Ball off left and right wall
+        if(x + dx > canvas.width - ballRadius || x + dx < ballRadius){
+            dx = -dx;
+            
+            //Set new rendow color
+            color = getRandomColor();
+           
+        }
+        
+        //Bounce Ball off top wall
+        if(y + dy < ballRadius){
+            dy = -dy;
+            
+            //Set new rendow color
+             color = getRandomColor();
+            }
+        
+        //If ball is between paddle change direction
+        else if(y + dy > canvas.height-ballRadius){
+            if(x > paddleX && x < paddleX+paddleWidth){
+                dy = -dy;
+                
+                //Set new rendow color
+                color = getRandomColor();
+                
+            }
+            
+        //Else ball has touched bottom edge, Subtracts from lives. If lives are zero, play game over screen
+            else{
+                lives--;
+                if(!lives){
+                    alert("Game Over");
+                     document.location.reload();
+                }
+                else{
+                    x = canvas.width/2;
+                    y = canvas.height - 30;
+                    dx = 2;
+                    dy = -2;
+                    paddleX = (canvas.width-paddleWidth)/2;
+                }
+                
+            }
+            
+        }
+        
+        
+        //Check to see if keys are pressed and not on edge of screen
+        if(rightPressed && paddleX < canvas.width-paddleWidth) {
+            paddleX += 3;
+        }
+        else if(leftPressed && paddleX > 0) {
+            paddleX -= 3;
+        }
+        
+        
+        //Increment x and y of ball
+        x += dx;
+        y += dy;
+        
+        //request Animation frames
+         requestAnimationFrame(draw); 
+    }
+    
+    
+    
+    
+   draw();
+ 
+    
+    
+    
+    
+    
+</script>
+
+    
+    
+</body>
+</html>
